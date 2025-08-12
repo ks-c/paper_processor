@@ -21,11 +21,11 @@ pip install pandas openai pypdf tkinter
 ```
 
 ## 使用步骤
-- 下载python pdf_process_final.py文件
+- 下载python pdf_conluse_final.py文件
 - 运行脚本：
 ```bash
 cd your\file\path
-python pdf_process_final.py
+python pdf_conluse_final.py
 ```
 - 基础配置：
   - 输入 API 密钥和服务地址
