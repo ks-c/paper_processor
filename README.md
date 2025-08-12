@@ -1,13 +1,13 @@
 # paper_processor
 A collection of Python scripts for streamlined academic PDF processing. 
 
-# pdf_process_final
+## pdf_process_final
 
-## 简介
+### 简介
 
 基于 Python Tkinter 的 GUI 应用，用于批量处理学术论文 PDF，通过 AI 提取元数据、翻译内容并生成总结，结果导出为 Excel。
 
-## 功能
+### 功能
 
 - 提取论文元数据（期刊名、标题、作者等）
 - 翻译标题和摘要为中文
@@ -15,7 +15,7 @@ A collection of Python scripts for streamlined academic PDF processing.
 - 批量处理 PDF 文件
 - 结果导出为 Excel
 
-## 依赖安装
+### 依赖安装
 ```bash
 pip install pandas openai pypdf tkinter
 ```
@@ -31,7 +31,7 @@ pip install pandas openai pypdf tkinter
 - 选择任务选项：翻译和 / 或总结
 - 点击 "开始处理" 运行，可点击 "停止" 终止
 
-## 注意事项
+### 注意事项
 - 需文本型 PDF，扫描版无法处理
 - 确保 API 密钥和服务地址正确
 - 处理过程需保持网络连接
