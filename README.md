@@ -16,8 +16,9 @@ A collection of Python scripts for streamlined academic PDF processing.
 - 结果导出为 Excel
 
 ## 依赖安装
-bash
+```bash
 pip install pandas openai pypdf tkinter
+```
 
 ## 使用步骤
 - 运行脚本：python pdf_process_final.py
