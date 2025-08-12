@@ -213,7 +213,7 @@ class App(tk.Tk):
         self.translate_var = tk.BooleanVar(value=True); self.summarize_var = tk.BooleanVar(value=True)
         trans_check = ttk.Checkbutton(task_frame, text="翻译标题和摘要", variable=self.translate_var)
         trans_check.pack(anchor=tk.W, padx=5)
-        summ_check = ttk.Checkbutton(task_frame, text="总结要点和结论)", variable=self.summarize_var)
+        summ_check = ttk.Checkbutton(task_frame, text="总结要点和结论", variable=self.summarize_var)
         summ_check.pack(anchor=tk.W, padx=5)
         
         # 4. 执行控制 (按钮同行)
@@ -331,4 +331,5 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
+
     app.mainloop()
