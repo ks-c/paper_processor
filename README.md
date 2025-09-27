@@ -8,7 +8,7 @@
 
 2. **LitIntel Agent**  
    功能更全面的AI驱动文献处理工具，支持PDF文件夹和PubMed导出TXT文件两种输入模式，提供增强型AI处理与配置功能。  
-   详细说明：[LitIntel Agent 文档](LitIntel Agent/Readme.md)
+   详细说明：[LitIntel Agent 文档](LitIntel%20Agent/Readme.md)
 
 ## 许可证
 本项目采用MIT许可证，详情参见[LICENSE](LICENSE)。
