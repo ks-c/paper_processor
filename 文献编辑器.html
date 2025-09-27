@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文献编辑器</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --border-color: #dee2e6;
+            --background-light: #f8f9fa;
+            --text-color: #212529;
+            --white-color: #fff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-light);
+            color: var(--text-color);
+        }
+        .app-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        #file-input {
+            display: none;
+        }
+        
+        .controls {
+            flex: 0 0 100px;
+            padding: 10px;
+            background-color: var(--white-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .controls h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-select-btn, .export-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 5px;
+            color: var(--white-color);
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .file-select-btn {
+             margin-bottom: 15px;
+             background-color: var(--primary-color);
+        }
+        .export-btn {
+            margin-top: 15px;
+            background-color: var(--success-color);
+        }
+
+        .table-container { flex-grow: 1; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            vertical-align: top;
+            font-size: 14px;
+        }
+        thead {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            position: sticky; top: 0; z-index: 10;
+        }
+        tbody tr:nth-of-type(even) { background-color: #f8f9fa; }
+        tbody tr:hover { background-color: #e9ecef; }
+        a { color: #0056b3; text-decoration: none; font-weight: 500; }
+        
+        .notes-cell {
+            border: none;
+            padding: 0;
+            vertical-align: top; /* 确保textarea从顶部对齐 */
+        }
+        
+        /* --- 修改点: 实现真正的无痕、自增高文本框 --- */
+        textarea.note-input {
+            width: 100%;
+            /* 移除固定高度设置，高度由JS控制 */
+            border: none;
+            border-left: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+            box-sizing: border-box;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            background-color: transparent;
+            border-radius: 0;
+            outline: none;
+            /* 禁用浏览器默认的拖拽和滚动条 */
+            resize: none; 
+            overflow: hidden; 
+        }
+        tr:last-child .notes-cell textarea.note-input{
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .delete-btn {
+            padding: 5px 10px; border: none; border-radius: 4px;
+            background-color: var(--danger-color); color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".xlsx, .xls, .csv">
+
+    <div class="app-container" id="app-container">
+        <aside class="controls">
+            <label for="file-input" class="file-select-btn">选择文件</label>
+            <div id="controls-content" style="display: none;">
+                <h3>显示列</h3>
+                <div id="column-toggles" class="control-group"></div>
+                <button id="export-button" class="export-btn">导出</button>
+            </div>
+        </aside>
+
+        <main class="table-container">
+            <table id="dataTable">
+                <thead></thead>
+                <tbody>
+                    <tr>
+                        <td id="placeholder-row" colspan="100%" style="text-align: center; padding: 40px; font-size: 16px;">
+                            请点击左侧“选择文件”加载您的Excel数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let literatureData = [];
+        let allColumns = [];
+        const defaultVisibleColumns = ['title_translated', 'authors', 'article_summary', 'abstract_translated'];
+
+        const fileInput = document.getElementById('file-input');
+        const controlsContent = document.getElementById('controls-content');
+        const table = document.getElementById('dataTable');
+        const tableHead = table.querySelector('thead');
+        const tableBody = table.querySelector('tbody');
+        const togglesContainer = document.getElementById('column-toggles');
+        const exportButton = document.getElementById('export-button');
+
+        fileInput.addEventListener('change', handleFile);
+
+        // --- 修改点: 增加一个用于文本框高度自适应的函数 ---
+        function autoGrow(element) {
+            element.style.height = "auto"; // 重置高度，以获取正确的scrollHeight
+            element.style.height = (element.scrollHeight) + "px"; // 设置为内容实际高度
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    literatureData = jsonData.map(row => ({...row, notes: row.notes || ''}));
+
+                    if (literatureData.length > 0) {
+                        allColumns = Object.keys(literatureData[0]);
+                        controlsContent.style.display = 'block';
+                        renderToggles();
+                        renderTable();
+                    } else { alert("文件为空或格式不正确！"); }
+                } catch (error) {
+                    alert("文件解析失败，请确保文件是有效的Excel格式。\n错误: " + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderToggles() {
+            togglesContainer.innerHTML = '';
+            const columnsToToggle = allColumns.filter(col => col !== 'notes'); 
+            columnsToToggle.forEach(col => {
+                const isChecked = defaultVisibleColumns.includes(col);
+                const label = document.createElement('label');
+                label.innerHTML = `<input type="checkbox" value="${col}" ${isChecked ? 'checked' : ''}> ${col}`;
+                label.title = col;
+                togglesContainer.appendChild(label);
+            });
+            updateColumnVisibility();
+        }
+
+        function renderTable() {
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (literatureData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 20px;">没有数据或所有数据已被删除。</td></tr>';
+                return;
+            }
+            
+            const headerRow = document.createElement('tr');
+            const columnsToRender = allColumns.filter(col => col !== 'notes');
+            
+            columnsToRender.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                th.className = `col-${key}`;
+                headerRow.appendChild(th);
+            });
+            headerRow.innerHTML += '<th>笔记</th><th>操作</th>';
+            tableHead.appendChild(headerRow);
+
+            literatureData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.dataset.rowIndex = index;
+
+                columnsToRender.forEach(key => {
+                    const cell = document.createElement('td');
+                    cell.className = `col-${key}`;
+                    const cellValue = item[key] !== null && item[key] !== undefined ? item[key] : '';
+                    
+                    if (key === 'title') { 
+                        cell.innerHTML = `<a href="${item.doi}" target="_blank" rel="noopener noreferrer">${cellValue}</a>`;
+                    } else {
+                        cell.textContent = cellValue;
+                    }
+                    row.appendChild(cell);
+                });
+                
+                const notesCell = document.createElement('td');
+                notesCell.className = 'notes-cell';
+                notesCell.innerHTML = `<textarea class="note-input">${item.notes || ''}</textarea>`;
+                
+                const actionsCell = document.createElement('td');
+                actionsCell.innerHTML = `<button class="delete-btn">删除</button>`;
+                
+                row.appendChild(notesCell);
+                row.appendChild(actionsCell);
+                
+                tableBody.appendChild(row);
+            });
+            
+            updateColumnVisibility();
+            
+            // --- 修改点: 渲染完成后，初始化所有笔记框的高度 ---
+            document.querySelectorAll('.note-input').forEach(textarea => autoGrow(textarea));
+        }
+
+        function updateColumnVisibility() {
+            const checkboxes = togglesContainer.querySelectorAll('input[type="checkbox"]');
+            const visibleColumns = new Set();
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    visibleColumns.add(cb.value);
+                }
+            });
+
+            allColumns.forEach(col => {
+                const elements = table.querySelectorAll(`.col-${col}`);
+                elements.forEach(el => {
+                    el.style.display = visibleColumns.has(col) ? '' : 'none';
+                });
+            });
+        }
+
+        togglesContainer.addEventListener('change', updateColumnVisibility);
+
+        tableBody.addEventListener('input', function(e) {
+            if (e.target.classList.contains('note-input')) {
+                // 更新数据模型
+                const rowIndex = e.target.closest('tr').dataset.rowIndex;
+                literatureData[rowIndex].notes = e.target.value;
+                // --- 修改点: 每次输入时，都调用函数调整高度 ---
+                autoGrow(e.target);
+            }
+        });
+
+        tableBody.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                const rowIndex = parseInt(e.target.closest('tr').dataset.rowIndex, 10);
+                literatureData.splice(rowIndex, 1);
+                renderTable();
+            }
+        });
+
+        exportButton.addEventListener('click', () => {
+            if (literatureData.length === 0) {
+                alert("没有数据可导出！");
+                return;
+            }
+            const worksheet = XLSX.utils.json_to_sheet(literatureData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "文献笔记");
+            
+            const filename = `summary_output_edited_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+        });
+    });
+    </script>
+</body>
+</html>
