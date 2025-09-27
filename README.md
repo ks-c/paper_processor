@@ -13,7 +13,10 @@
 3. **LitIntel Agent V2.0**
     * LitIntel Agent的升级款。
     * 一款强大的二合一GUI工具，不仅具备批量处理PDF或TXT文献并生成结构化Excel数据的功能，还能基于这些数据，利用AI自动生成专业的文献综述大纲和完整的HTML格式综述报告。
-    * 详细说明：[Literature AI Processor 文档](./literature_ai_processor/README.md)
+    * 详细说明：[Literature AI Processor 文档](./LitIntel_Agent_V_2/Readme.md)
+4. **LitIntel Agent V3.0**
+    * LitIntel Agent的升级款的升级款
+    * 详细说明：[Literature AI Processor 文档](./LitIntel_Agent_V_3/Readme.md)
 
 
 ## 许可证
