@@ -13,7 +13,7 @@
 ### 基础配置
 
 - api秘钥：填写模型的api key
-- 服务地址：填写模型服务的url链接地址
+- 服务地址：填写模型服务的url链接地址，只支持**OpenAI兼容的格式**！
 - 模型名称：填写具体的模型名称
 
 <img width="552" height="217" alt="image" src="https://github.com/user-attachments/assets/e524fb54-cc7a-44ed-bcd6-3c55285a4721" />
