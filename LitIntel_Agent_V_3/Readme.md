@@ -33,3 +33,9 @@
 - 综述大纲：可以使用ai根据综述主题生成综述大纲，或自行设置
 <img width="552" height="198" alt="image" src="https://github.com/user-attachments/assets/3d63e15e-e4fa-49e5-b468-deed240d28d5" />
 <img width="653" height="263" alt="image" src="https://github.com/user-attachments/assets/4a51820e-63fd-4cd3-b34f-3effdbf9b1d1" />
+
+
+## 注意
+
+- 没有自动搜索文献的功能
+- 综述的质量一言难尽，和大纲的质量相关，且仅供参考。
